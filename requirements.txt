@@ -2,3 +2,4 @@ pandas
 requests
 vnstock
 schedule
+pyTelegramBotAPI
