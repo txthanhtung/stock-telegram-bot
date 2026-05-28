@@ -1,0 +1,13 @@
+# Bỏ qua các file sinh ra trong quá trình chạy Python
+__pycache__/
+*.py[cod]
+*$py.class
+# Bỏ qua môi trường ảo (Virtual Environment)
+venv/
+env/
+.env
+# Bỏ qua cấu hình của IDE
+.vscode/
+.idea/
+# Bỏ qua file log (nếu có)
+*.log
