@@ -15,22 +15,27 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 # ================= TƯƠNG THÍCH VNSTOCK V3 & V4 =================
 try:
-    from vnstock import Vnstock
-    vnstock_client = Vnstock()
-    use_v4 = True
+    # Gọi thư viện theo chuẩn kiến trúc mới của Vnstock 4.0.1+
+    from vnstock.api.quote import Quote
+    print("✨ Đã kết nối thư viện vnstock.api mới nhất!")
 except ImportError:
-    from vnstock import stock_historical_data
-    use_v4 = False
+    print("❌ Thư viện chưa cập nhật. Vui lòng chạy lệnh: pip install vnstock -U")
 
 def get_historical_data(ticker, start_date, end_date):
-    if use_v4:
+    """Hàm lấy dữ liệu lịch sử chuẩn vnstock mới với cơ chế chống lỗi 400"""
+    try:
+        # Thử lấy dữ liệu bằng nguồn VCI trước
+        q = Quote(symbol=ticker, source='VCI')
+        return q.history(start=start_date, end=end_date)
+    except Exception as e:
+        print(f"⚠️ Nguồn VCI gặp lỗi ({e}). Tự động chuyển nguồn cho {ticker}...")
         try:
-            stock = vnstock_client.stock(symbol=ticker, source='VCI')
-            return stock.quote.history(start=start_date, end=end_date)
-        except Exception as e:
+            # Nếu VCI báo lỗi 400, tự động chuyển sang nguồn TCBS
+            q_fallback = Quote(symbol=ticker, source='TCBS')
+            return q_fallback.history(start=start_date, end=end_date)
+        except Exception as e_fallback:
+            print(f"❌ Cả 2 nguồn đều lỗi không lấy được dữ liệu {ticker}: {e_fallback}")
             return None
-    else:
-        return stock_historical_data(symbol=ticker, start_date=start_date, end_date=end_date, resolution='1D', type='stock')
 
 def calculate_rsi(series, period=14):
     delta = series.diff()
